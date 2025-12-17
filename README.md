@@ -1,4 +1,4 @@
-# Inventory Management System (Level-3 Project)
+# Inventory Management System 
 
 A robust, database-driven Python application designed to manage inventory, track product stock, and generate actionable reports. This system simulates real-world enterprise requirements using **Python** and **MySQL**.
 
