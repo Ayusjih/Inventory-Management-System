@@ -57,6 +57,65 @@ def init_db():
         print(f"Initialization Error: {e}")
 
 
+def bulk_update():
+    """Logic: Update Price or Quantity for an entire Category."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    print("\n--- BULK UPDATE MASTER ---")
+    print("1. Adjust Prices by % (e.g., +10% or -5%)")
+    print("2. Set Fixed Stock Quantity for a Category")
+    
+    sub_choice = input("Choose Bulk Option (1 or 2): ")
+    
+    # Get available categories to show the user
+    cursor.execute("SELECT DISTINCT category FROM products")
+    categories = [row[0] for row in cursor.fetchall()]
+    
+    print(f"Available Categories: {', '.join(categories)}")
+    target_cat = input("Enter Category to update (or type 'ALL'): ")
+
+    try:
+        if sub_choice == '1':
+            # Price Adjustment Logic
+            percent = float(input("Enter Percentage (e.g., 10 for +10%, -20 for -20%): "))
+            factor = 1 + (percent / 100)
+            
+            if target_cat.upper() == 'ALL':
+                query = "UPDATE products SET price = price * %s"
+                params = (factor,)
+            else:
+                query = "UPDATE products SET price = price * %s WHERE category = %s"
+                params = (factor, target_cat)
+            
+            cursor.execute(query, params)
+            print(f">> Success! Updated prices by {percent}% for {target_cat}.")
+
+        elif sub_choice == '2':
+            # Bulk Quantity Set Logic
+            new_qty = int(input("Enter new fixed Quantity: "))
+            
+            if target_cat.upper() == 'ALL':
+                query = "UPDATE products SET quantity = %s"
+                params = (new_qty,)
+            else:
+                query = "UPDATE products SET quantity = %s WHERE category = %s"
+                params = (new_qty, target_cat)
+                
+            cursor.execute(query, params)
+            print(f">> Success! Set quantity to {new_qty} for all {target_cat} items.")
+
+        else:
+            print("Invalid option selected.")
+
+        conn.commit()
+        
+    except ValueError:
+        print("Error: Please enter valid numbers.")
+    except Error as e:
+        print(f"Database Error: {e}")
+    finally:
+        if conn: conn.close()
 
 def add_product():
     """Logic: Validate ID, Qty > 0, Price valid -> Insert."""
@@ -216,12 +275,12 @@ def main():
             update_product()
         elif choice == '3':
             delete_product()
-        elif choice == '4':
+        elif choice == '4': 
             view_inventory()
         elif choice == '5':
             generate_reports()
         elif choice == '6':
-            print(">> Bulk Update feature coming soon!")
+            bulk_update() 
         elif choice == '7':
             print("Exiting System... Goodbye!")
             sys.exit()
